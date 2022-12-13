@@ -1,4 +1,3 @@
-//@ts-check
 (function () {
     //定数項
     class Const {
@@ -43,20 +42,12 @@
 
     }
     // (実質的な)グローバル変数
-    /**
-     * @type {number}
-     */
     let TotalHeight;//画像全体の高さ　譜面の長さを参照して変動
-    /**
-     * @type {number}
-     */
     let TotalWidth;//画像全体の幅　レーザーのはみ出し度合いを参照して変動
     //分数クラス
     class Fraction {
         constructor(...args) {
-            /** @type {number} */
             this.numerator//分子
-            /** @type {number} */
             this.denominator//分母
             if (args.length == 1 && typeof args[0] === "string" && /[+-]?\d+\/[+-]?\d+/.test(args[0])) {//分数の形式に沿った文字列
                 [this.numerator, this.denominator] = args[0].split("/").map((n) => Number(n))
@@ -76,59 +67,31 @@
         toString() {//文字列へ変換
             return `${this.numerator}/${this.denominator}`
         }
-        /**
-         * @param {string} string
-         */
         static stringToNumber(string) {//文字列を数値へ変換
             return new Fraction(string).toNumber()
         }
-        /** 
-         * @param {Fraction} fraction1
-         * @param {Fraction} fraction2
-        */
         static Equal(fraction1, fraction2) {//2つの分数が同じ値を指しているか判定
             return Math.round(fraction1.numerator * fraction2.denominator) == Math.round(fraction2.numerator * fraction1.denominator)
         }
-        /** 
-         * @param {any} target
-        */
         static isFraction(target) {//分数として解釈できる文字列か判定
             return typeof target === "string" && /[+-]?\d+\/[+-]?\d+/.test(target)
         }
-        /** 
-         * @param {Fraction[]} fracs
-        */
         static Max(...fracs) {//最大のものを返す
             return fracs.reduce((fa, fb) => fa.numerator * fb.denominator > fb.numerator * fa.denominator ? fa : fb)
         }
-        /** 
-         * @param {Fraction[]} fracs
-        */
         static Min(...fracs) {//最小のものを返す
             return fracs.reduce((fa, fb) => fa.numerator * fb.denominator < fb.numerator * fa.denominator ? fa : fb)
         }
     }
-    /** 
-     * @param {any[]} array
-     * @param {number} n
-     * @returns {string[][]}//便宜上
-    */
     //配列をn個ずつに分割する関数
     const split = (array, n) => array.reduce((a, c, i) => i % n == 0 ? [...a, [c]] : [...a.slice(0, -1), [...a[a.length - 1], c]], [])
 
 
-    /**
-     * @type {NodeListOf<HTMLCanvasElement>}
-    */
     const charts = document.querySelectorAll(".chartImage")
     charts.forEach((c) => {
         showChart(c)
     })
     //canvasに譜面画像を描く
-    /**
-     * 
-     * @param {HTMLCanvasElement} chartCanvas
-     */
     function showChart(chartCanvas) {
         chartCanvas.width = 0
         chartCanvas.height = 0
@@ -181,11 +144,6 @@
         }
     }
 
-    /**
-     * @param {CanvasRenderingContext2D} ctx
-     * @param {boolean} forVolL
-     * @param {boolean} forVolR
-     */
     function setTransform(ctx, forVolL, forVolR) {
         if (forVolL) {//原点を左下に
             ctx.setTransform(1, 0, 0, -1, (TotalWidth - Const.TOTAL_LANE_WIDTH) / 2, TotalHeight - Const.BAR_HEIGHT / 16);//左端を原点にする
@@ -195,9 +153,6 @@
             ctx.setTransform(1, 0, 0, -1, TotalWidth / 2, TotalHeight - Const.BAR_HEIGHT / 16);//Y軸反転、図中のX軸中央、Y軸下端から16分1個空けたところに原点移動
         }
     }
-    /**
-     * @param {CanvasRenderingContext2D} ctx
-     */
     function drawBackground(ctx) {//背景を描く
         ctx.setTransform(1, 0, 0, -1, (TotalWidth - Const.TOTAL_LANE_WIDTH) / 2, TotalHeight);
         ctx.fillStyle = Const.LANE_BT_COLOR
@@ -239,10 +194,6 @@
             ctx.stroke()
         }
     }
-    /**
-     * @param {CanvasRenderingContext2D} ctx
-     * @param {string[][]} data
-     */
     function placeLongs(ctx, data) {//ロングノーツ描画
         data.forEach(d => {//FXを描くループ
             if (d[0].includes("L")) {
@@ -267,18 +218,12 @@
             }
         })
     }
-    /**
-     * @param {CanvasRenderingContext2D} ctx
-     * @param {string[][][]} data
-     */
     function placeVols(ctx, data) {//つまみの描画
         data.forEach(point_data => {//point_data:1つながりのつまみの折れ目ごとの形状データ
             const strokePath = new Path2D()
             const fillPath = new Path2D()
             if (point_data[0][0] != "L" && point_data[0][0] != "R") { console.error("レーザー開始点の情報がありません") }
-            /** @type {string[]} */
             let previous
-            /** @type {number} */
             let previousVerticalStartLane
             point_data.forEach((d => {
                 //始点
@@ -578,10 +523,6 @@
 
 
     }
-    /**
-     * @param {CanvasRenderingContext2D} ctx
-     * @param {string[][]} data
-     */
     function placeChips(ctx, data) {//チップノーツの描画
         const hashOfChipFX = {}//FXチップの上に乗ったBTチップを小さく表示するための連想配列
         data.forEach(d => {
@@ -695,10 +636,6 @@
             }
         })
     }
-    /**
-     * @param {CanvasRenderingContext2D} ctx
-     * @param {string[][]} data
-     */
     function placeBpm(ctx, data) {//BPM表記
 
         ctx.font = Const.BPM_FONT
@@ -712,12 +649,6 @@
         })
     }
     //個々のノーツの描画用関数
-    /**
-     * @param {CanvasRenderingContext2D} ctx
-     * @param {string} buttonName
-     * @param {number} startPos
-     * @param {number} endPos
-     */
     function placeLongFX(ctx, buttonName, startPos, endPos) {
         let fillRect1;
         const fillRect2 = Const.BAR_HEIGHT * startPos;
@@ -737,12 +668,6 @@
         ctx.fillRect(fillRect1, fillRect2, fillRect3, fillRect4)
 
     }
-    /**
-     * @param {CanvasRenderingContext2D} ctx
-     * @param {string} buttonName
-     * @param {number} startPos
-     * @param {number} endPos
-     */
     function placeLongBT(ctx, buttonName, startPos, endPos) {
         let fillRect1;
         const fillRect2 = Const.BAR_HEIGHT * startPos;
@@ -768,12 +693,6 @@
         ctx.fillRect(fillRect1, fillRect2, fillRect3, fillRect4)
 
     }
-    /**
-     * @param {CanvasRenderingContext2D} ctx
-     * @param {string} buttonName
-     * @param {number} pos
-     * @param {boolean} isSE
-     */
     function placeChipFX(ctx, buttonName, pos, isSE) {
         setTransform(ctx, false, false);
         let fillRect1;
@@ -797,12 +716,6 @@
         ctx.fillRect(fillRect1, fillRect2, fillRect3, fillRect4)
 
     }
-    /**
-     * @param {CanvasRenderingContext2D} ctx
-     * @param {string} buttonName
-     * @param {number} pos
-     * @param {boolean} onChipFX
-     */
     function placeChipBT(ctx, buttonName, pos, onChipFX) {
         setTransform(ctx, false, false);
         let fillRect1;
