@@ -44,6 +44,7 @@
     // (実質的な)グローバル変数
     let TotalHeight;//画像全体の高さ　譜面の長さを参照して変動
     let TotalWidth;//画像全体の幅　レーザーのはみ出し度合いを参照して変動
+    let LowerMargin;//RANGEの指定の有無によって、RANGEの開始タイミングとConst.MARGIN_HEIGHT_LOWERのどちらかになる値
     //分数クラス
     class Fraction {
         constructor(...args) {
@@ -104,21 +105,29 @@
                     .map((st) => st.trim())
                     .filter((st) => st)
                 )//スペースとsplit後の空文字をここで削除しているため、スペースや余分な区切り文字を入れても機能する
+            const range_data = objects.filter((d) => d[0] == "RANGE").flatMap((d) => split(d.slice(1), 2))//[[開始タイミング,終了タイミング]
             const bpm_data = objects.filter((d) => d[0] == "BPM").flatMap((d) => split(d.slice(1), 2))//[[BPM,タイミング],[BPM,タイミング],…]
             const long_data = objects.filter((d) => d[0] == "LONG").flatMap((d) => split(d.slice(1), 3))//[[押すボタン,始点タイミング,終点タイミング],[押すボタン,始点タイミング,終点タイミング],…]
             const chip_data = objects.filter((d) => d[0] == "CHIP").flatMap((d) => split(d.slice(1), 2))//[[押すボタン,タイミング],[押すボタン,タイミング],…]
             const vol_point_data = objects.filter((d) => d[0] == "VOL").flatMap((d) => split(d.slice(1), 3))//[[レーザーの形,終点タイミング,終点レーン位置],[レーザーの形,終点タイミング,終点レーン位置],…]
-            const all_data = [...bpm_data, ...long_data, ...chip_data, ...vol_point_data]
-            const last_pos =
-                Fraction.Max(...
-                    all_data
-                        .flatMap((ds) =>
-                            ds.filter((s) => Fraction.isFraction(s))
-                                .map((s) => new Fraction(s))
-                        ))
-                    .toNumber()//canvasの高さ決定に使う、最後の譜面要素の位置
-
-            TotalHeight = Const.BAR_HEIGHT * last_pos + Const.MARGIN_HEIGHT_UPPER + Const.MARGIN_HEIGHT_LOWER//canvasの高さ
+            let last_pos
+            if (range_data.length > 0){
+                TotalHeight = Const.BAR_HEIGHT * (Fraction.stringToNumber(range_data[0][1])-Fraction.stringToNumber(range_data[0][0]))//RANGEについては初めの2つのデータのみを読み取る
+                LowerMargin = Fraction.stringToNumber(range_data[0][0])
+            }
+            else {
+                const all_data = [...bpm_data, ...long_data, ...chip_data, ...vol_point_data]
+                last_pos =
+                    Fraction.Max(...
+                        all_data
+                            .flatMap((ds) =>
+                                ds.filter((s) => Fraction.isFraction(s))
+                                    .map((s) => new Fraction(s))
+                            ))
+                        .toNumber()//canvasの高さ決定に使う、最後の譜面要素の位置
+                TotalHeight = Const.BAR_HEIGHT * last_pos + Const.MARGIN_HEIGHT_UPPER + Const.MARGIN_HEIGHT_LOWER//canvasの高さ
+                LowerMargin = Const.MARGIN_HEIGHT_LOWER
+            }
             const vols_lanes = vol_point_data.map((ds) => Number(ds[2]))//canvasの幅決定に使う、レーザーの配置されたレーン位置
             const bpm_exists = bpm_data.length > 0
             TotalWidth =
@@ -150,7 +159,7 @@
         } else if (forVolR) {//原点を右下に
             ctx.setTransform(-1, 0, 0, -1, TotalWidth - (TotalWidth - Const.TOTAL_LANE_WIDTH) / 2, TotalHeight - Const.BAR_HEIGHT / 16);//右端を原点にする
         } else {//原点を中央下に
-            ctx.setTransform(1, 0, 0, -1, TotalWidth / 2, TotalHeight - Const.BAR_HEIGHT / 16);//Y軸反転、図中のX軸中央、Y軸下端から16分1個空けたところに原点移動
+            ctx.setTransform(1, 0, 0, -1, TotalWidth / 2, TotalHeight - LowerMargin);//Y軸反転、図中のX軸中央、Y軸下端から16分1個空けたところに原点移動
         }
     }
     function drawBackground(ctx) {//背景を描く
@@ -186,7 +195,7 @@
         ctx.lineTo(Const.LASER_LANE_WIDTH + Const.SINGLE_LANE_WIDTH * 3, TotalHeight)
         ctx.stroke()//BTレーン縁
         ctx.strokeStyle = Const.BAR_LINE_COLOR
-        ctx.setTransform(1, 0, 0, -1, (TotalWidth - Const.TOTAL_LANE_WIDTH) / 2, TotalHeight - Const.MARGIN_HEIGHT_LOWER);//下側のマージンを省いてY=0を設定
+        ctx.setTransform(1, 0, 0, -1, (TotalWidth - Const.TOTAL_LANE_WIDTH) / 2, TotalHeight - LowerMargin);//下側のマージンを省いてY=0を設定
         for (let barLineHeight = 0; barLineHeight < TotalHeight; barLineHeight += Const.BAR_HEIGHT) {//小節線 拍子未実装
             ctx.beginPath()
             ctx.moveTo(0, barLineHeight)
@@ -640,7 +649,7 @@
 
         ctx.font = Const.BPM_FONT
         ctx.textAlign = "right"
-        ctx.setTransform(1, 0, 0, 1, (TotalWidth - Const.TOTAL_LANE_WIDTH) / 2, TotalHeight - Const.MARGIN_HEIGHT_LOWER)
+        ctx.setTransform(1, 0, 0, 1, (TotalWidth - Const.TOTAL_LANE_WIDTH) / 2, TotalHeight - LowerMargin)
         let previousBpm
         data.forEach(d => {//[BPM、タイミング]
             ctx.fillStyle = previousBpm ? previousBpm > Number(d[0]) ? Const.BPM_LOWER_COLOR : previousBpm < Number(d[0]) ? Const.BPM_UPPER_COLOR : Const.BPM_NORMAL_COLOR : Const.BPM_NORMAL_COLOR
