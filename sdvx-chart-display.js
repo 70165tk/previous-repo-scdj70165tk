@@ -155,9 +155,9 @@
 
     function setTransform(ctx, forVolL, forVolR) {
         if (forVolL) {//原点を左下に
-            ctx.setTransform(1, 0, 0, -1, (TotalWidth - Const.TOTAL_LANE_WIDTH) / 2, TotalHeight - Const.BAR_HEIGHT / 16);//左端を原点にする
+            ctx.setTransform(1, 0, 0, -1, (TotalWidth - Const.TOTAL_LANE_WIDTH) / 2, TotalHeight - LowerMargin);//左端を原点にする
         } else if (forVolR) {//原点を右下に
-            ctx.setTransform(-1, 0, 0, -1, TotalWidth - (TotalWidth - Const.TOTAL_LANE_WIDTH) / 2, TotalHeight - Const.BAR_HEIGHT / 16);//右端を原点にする
+            ctx.setTransform(-1, 0, 0, -1, TotalWidth - (TotalWidth - Const.TOTAL_LANE_WIDTH) / 2, TotalHeight - LowerMargin);//右端を原点にする
         } else {//原点を中央下に
             ctx.setTransform(1, 0, 0, -1, TotalWidth / 2, TotalHeight - LowerMargin);//Y軸反転、図中のX軸中央、Y軸下端から16分1個空けたところに原点移動
         }
