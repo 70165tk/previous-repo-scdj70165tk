@@ -719,7 +719,7 @@
             fillRect1 = 0
             fillRect3 = Const.LONG_FX_WIDTH
         } else {
-            console.log(`FXButtonName "${buttonName}"は存在しません`)
+            console.error(`FXButtonName "${buttonName}"は存在しません`)
         }
         setTransform(ctx, false, false);//Y軸反転、図中のX軸中央、Y軸下端に原点移動
         ctx.fillStyle = Const.LONG_FX_COLOR
@@ -744,7 +744,7 @@
             fillRect1 = Const.SINGLE_LANE_WIDTH + (Const.SINGLE_LANE_WIDTH - Const.LONG_BT_WIDTH) / 2
             fillRect3 = Const.LONG_BT_WIDTH
         } else {
-            console.log(`BTButtonName "${buttonName}"は存在しません`)
+            console.error(`BTButtonName "${buttonName}"は存在しません`)
         }
         setTransform(ctx, false, false);//Y軸反転、図中のX軸中央、Y軸下端に原点移動
         ctx.fillStyle = Const.LONG_BT_COLOR
@@ -808,10 +808,8 @@
     function clipCurve(curvePoints, laserParallelHeight) {
         const [startX, startY, startCpX, startCpY, endCpX, endCpY, endX, endY] = curvePoints
         const t = solveEquationForBezierCurve(startY, startCpY, endCpY, endY, laserParallelHeight)
-        console.log(t)
         if (t) {
             const newCurvePoints = clipNewBezierCurve(startX, startY, startCpX, startCpY, endCpX, endCpY, endX, endY, t, 1)
-            console.log(newCurvePoints)
             return newCurvePoints
         }
     }
@@ -842,9 +840,6 @@
         const cp = -3 * p1 + 3 * p2
         const dp = p1 - p
         const pt = solveCubicEquation(ap, bp, cp, dp)
-        console.log(`${pt[0]}+${pt[1]}i`)
-        console.log(`${pt[2]}+${pt[3]}i`)
-        console.log(`${pt[4]}+${pt[5]}i`)
         const targetP = pt.filter((v, i) => i % 2 === 0).map(v => round(v, 10)).sort((a,b)=>a < b ? -1 : 1).find(v => 0 <= v && v <= 1)
         return targetP
     }
