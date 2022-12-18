@@ -844,7 +844,7 @@
         return targetP
     }
     function solveCubicEquation(a, b, c, d) {
-        const p = -b * b / 3 / a / a + c / a;
+        const p = c / a - b * b / 3 / a / a;
         const q = 2 * b * b * b / 27 / a / a / a - b * c / 3 / a / a + d / a;
         const r2 = 81 * q * q + 12 * p * p * p;
         let r_r = 0;
