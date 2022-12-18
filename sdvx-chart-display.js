@@ -431,44 +431,44 @@
                         } else {
                             console.error("カーブのタイプ指定が見つかりません")
                         }
-                        const curveSmallerPoints = clipCurve([startSmallerX, startY, startCpSmallerX,startCpY,endCpSmallerX, endCpY,endSmallerX, endY], verticalParallelY)
-                        const curveLargerPoints = clipCurve([startLargerX, startY, startCpLargerX,startCpY,endCpLargerX, endCpY,endLargerX, endY], verticalParallelY)
-                        
+                        const curveSmallerPoints = clipCurve([startSmallerX, startY, startCpSmallerX, startCpY, endCpSmallerX, endCpY, endSmallerX, endY], verticalParallelY)
+                        const curveLargerPoints = clipCurve([startLargerX, startY, startCpLargerX, startCpY, endCpLargerX, endCpY, endLargerX, endY], verticalParallelY)
+
                         const path = new Path2D()
-                        if(verticalStartLane < verticalEndLane){
+                        if (verticalStartLane < verticalEndLane) {
                             path.moveTo(verticalStartX, verticalStartY)
                             path.lineTo(verticalStartX, verticalParallelY)
                             path.lineTo(curveSmallerPoints[0], curveSmallerPoints[1])
-                            path.bezierCurveTo(curveSmallerPoints[2],curveSmallerPoints[3],curveSmallerPoints[4],curveSmallerPoints[5],curveSmallerPoints[6],curveSmallerPoints[7])
-                            path.lineTo(curveLargerPoints[6],curveLargerPoints[7])
-                            path.bezierCurveTo(endCpLargerX,endCpY,startCpLargerX,startCpY,startLargerX,startY)
+                            path.bezierCurveTo(curveSmallerPoints[2], curveSmallerPoints[3], curveSmallerPoints[4], curveSmallerPoints[5], curveSmallerPoints[6], curveSmallerPoints[7])
+                            path.lineTo(curveLargerPoints[6], curveLargerPoints[7])
+                            path.bezierCurveTo(endCpLargerX, endCpY, startCpLargerX, startCpY, startLargerX, startY)
                             path.lineTo(verticalStartX, verticalStartY)
-                        }else{
+                        } else {
                             path.moveTo(verticalStartX, verticalStartY)
                             path.lineTo(verticalStartX, verticalParallelY)
                             path.lineTo(curveLargerPoints[0], curveLargerPoints[1])
-                            path.bezierCurveTo(curveLargerPoints[2],curveLargerPoints[3],curveLargerPoints[4],curveLargerPoints[5],curveLargerPoints[6],curveLargerPoints[7])
-                            path.lineTo(curveSmallerPoints[6],curveSmallerPoints[7])
-                            path.bezierCurveTo(endCpSmallerX,endCpY,startCpSmallerX,startCpY,startSmallerX,startY)
+                            path.bezierCurveTo(curveLargerPoints[2], curveLargerPoints[3], curveLargerPoints[4], curveLargerPoints[5], curveLargerPoints[6], curveLargerPoints[7])
+                            path.lineTo(curveSmallerPoints[6], curveSmallerPoints[7])
+                            path.bezierCurveTo(endCpSmallerX, endCpY, startCpSmallerX, startCpY, startSmallerX, startY)
                             path.lineTo(verticalStartX, verticalStartY)
                         }
                         path.closePath()
                         fillPath.addPath(path)
-                        if(verticalStartLane < verticalEndLane){
+                        if (verticalStartLane < verticalEndLane) {
                             strokePath.moveTo(verticalStartX, verticalStartY)
                             strokePath.lineTo(verticalStartX, verticalParallelY)
                             strokePath.lineTo(curveSmallerPoints[0], curveSmallerPoints[1])
-                            strokePath.bezierCurveTo(curveSmallerPoints[2],curveSmallerPoints[3],curveSmallerPoints[4],curveSmallerPoints[5],curveSmallerPoints[6],curveSmallerPoints[7])
-                            strokePath.moveTo(curveLargerPoints[6],curveLargerPoints[7])
-                            strokePath.bezierCurveTo(endCpLargerX,endCpY,startCpLargerX,startCpY,startLargerX,startY)
+                            strokePath.bezierCurveTo(curveSmallerPoints[2], curveSmallerPoints[3], curveSmallerPoints[4], curveSmallerPoints[5], curveSmallerPoints[6], curveSmallerPoints[7])
+                            strokePath.moveTo(curveLargerPoints[6], curveLargerPoints[7])
+                            strokePath.bezierCurveTo(endCpLargerX, endCpY, startCpLargerX, startCpY, startLargerX, startY)
                             strokePath.lineTo(verticalStartLargerX, verticalStartY)
-                        }else{
+                        } else {
                             strokePath.moveTo(verticalStartX, verticalStartY)
                             strokePath.lineTo(verticalStartX, verticalParallelY)
                             strokePath.lineTo(curveLargerPoints[0], curveLargerPoints[1])
-                            strokePath.bezierCurveTo(curveLargerPoints[2],curveLargerPoints[3],curveLargerPoints[4],curveLargerPoints[5],curveLargerPoints[6],curveLargerPoints[7])
-                            strokePath.moveTo(curveSmallerPoints[6],curveSmallerPoints[7])
-                            strokePath.bezierCurveTo(endCpSmallerX,endCpY,startCpSmallerX,startCpY,startSmallerX,startY)
+                            strokePath.bezierCurveTo(curveLargerPoints[2], curveLargerPoints[3], curveLargerPoints[4], curveLargerPoints[5], curveLargerPoints[6], curveLargerPoints[7])
+                            strokePath.moveTo(curveSmallerPoints[6], curveSmallerPoints[7])
+                            strokePath.bezierCurveTo(endCpSmallerX, endCpY, startCpSmallerX, startCpY, startSmallerX, startY)
                             strokePath.lineTo(verticalStartLargerX, verticalStartY)
                         }
                     } else {//ただの曲線
@@ -840,7 +840,7 @@
         const cp = -3 * p1 + 3 * p2
         const dp = p1 - p
         const pt = solveCubicEquation(ap, bp, cp, dp)
-        const targetP = pt.filter((v, i) => i % 2 === 0).map(v => round(v, 10)).sort((a,b)=>a < b ? -1 : 1).find(v => 0 <= v && v <= 1)
+        const targetP = pt.filter((v, i) => i % 2 === 0).map(v => round(v, 10)).sort((a, b) => a < b ? -1 : 1).find(v => 0 <= v && v <= 1)
         return targetP
     }
     function solveCubicEquation(a, b, c, d) {
