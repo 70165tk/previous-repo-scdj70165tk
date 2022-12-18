@@ -114,14 +114,14 @@
                 )//スペースとsplit後の空文字をここで削除しているため、スペースや余分な区切り文字を入れても機能する
             const range_data = objects.filter((d) => d[0] == "RANGE").flatMap((d) => split(d.slice(1), 2))//[[開始タイミング,終了タイミング]]
             const meter_data = objects.filter((d) => d[0] == "METER").flatMap((d) => split(d.slice(1), 2))//[[拍子,タイミング],[拍子,タイミング],…]
-            const meter_pos_data = meter_data.map((d)=>d.slice(1))//[[タイミング],[タイミング],…]
+            const meter_pos_data = meter_data.map((d) => d.slice(1))//[[タイミング],[タイミング],…]
             const bpm_data = objects.filter((d) => d[0] == "BPM").flatMap((d) => split(d.slice(1), 2))//[[BPM,タイミング],[BPM,タイミング],…]
             const long_data = objects.filter((d) => d[0] == "LONG").flatMap((d) => split(d.slice(1), 3))//[[押すボタン,始点タイミング,終点タイミング],[押すボタン,始点タイミング,終点タイミング],…]
             const chip_data = objects.filter((d) => d[0] == "CHIP").flatMap((d) => split(d.slice(1), 2))//[[押すボタン,タイミング],[押すボタン,タイミング],…]
             const vol_point_data = objects.filter((d) => d[0] == "VOL").flatMap((d) => split(d.slice(1), 3))//[[レーザーの形,終点タイミング,終点レーン位置],[レーザーの形,終点タイミング,終点レーン位置],…]
             let last_pos
-            if (range_data.length > 0){
-                TotalHeight = Const.BAR_HEIGHT * (Fraction.stringToNumber(range_data[0][1])-Fraction.stringToNumber(range_data[0][0]))//RANGEについては初めの2つのデータのみを読み取る
+            if (range_data.length > 0) {
+                TotalHeight = Const.BAR_HEIGHT * (Fraction.stringToNumber(range_data[0][1]) - Fraction.stringToNumber(range_data[0][0]))//RANGEについては初めの2つのデータのみを読み取る
                 LowerMargin = Fraction.stringToNumber(range_data[0][0])
             }
             else {
@@ -205,7 +205,7 @@
         ctx.stroke()//BTレーン縁
         ctx.strokeStyle = Const.BAR_LINE_COLOR
         ctx.setTransform(1, 0, 0, -1, (TotalWidth - Const.TOTAL_LANE_WIDTH) / 2, TotalHeight - LowerMargin);//下側のマージンを省いてY=0を設定
-        if(data.length > 0){
+        if (data.length > 0) {
             let currentBarHeight
             let currentPos = new Fraction()
             for (let barLineHeight = 0; barLineHeight < TotalHeight; barLineHeight += currentBarHeight) {//小節線 拍子変更を反映
@@ -213,33 +213,33 @@
                 ctx.moveTo(0, barLineHeight)
                 ctx.lineTo(Const.TOTAL_LANE_WIDTH, barLineHeight)
                 ctx.stroke()
-                let targetIndex = data.findIndex(d=>
-                    Fraction.Equal( 
-                        Fraction.Max( new Fraction(d[1]),currentPos),
-                         new Fraction(d[1])
-                         )&&
-                         !Fraction.Equal( new Fraction(d[1]),currentPos)
-                         )
-                         -1
-                if(targetIndex < 0){
+                let targetIndex = data.findIndex(d =>
+                    Fraction.Equal(
+                        Fraction.Max(new Fraction(d[1]), currentPos),
+                        new Fraction(d[1])
+                    ) &&
+                    !Fraction.Equal(new Fraction(d[1]), currentPos)
+                )
+                    - 1
+                if (targetIndex < 0) {
                     targetIndex = data.length - 1
                 }
                 const targetData = data[targetIndex]
                 const targetPos = new Fraction(targetData[0])
                 //currentPos以前に配置された最後の拍子指定を読み取る
                 //拍子指定にしたがって次に足す長さを作る
-                currentBarHeight = targetPos.toNumber()*Const.BAR_HEIGHT
+                currentBarHeight = targetPos.toNumber() * Const.BAR_HEIGHT
                 currentPos = Fraction.Add(currentPos, targetPos)
             }
 
-        }else{
+        } else {
             for (let barLineHeight = 0; barLineHeight < TotalHeight; barLineHeight += Const.BAR_HEIGHT) {//小節線 拍子4/4
                 ctx.beginPath()
                 ctx.moveTo(0, barLineHeight)
                 ctx.lineTo(Const.TOTAL_LANE_WIDTH, barLineHeight)
                 ctx.stroke()
             }
-            
+
         }
     }
     function placeLongs(ctx, data) {//ロングノーツ描画
@@ -431,36 +431,46 @@
                         } else {
                             console.error("カーブのタイプ指定が見つかりません")
                         }
-                        //直角の描画が曲線からはみ出ないような直角終端X座標
-                        //本来はベジェ曲線と直線の交点X座標を入れるべきところをサボっているもの
-                        const verticalEndXTemp = d[0].includes("OUT") && ((endLane > startLane && verticalEndLane > verticalStartLane) || (endLane < startLane && verticalEndLane < verticalStartLane)) ? verticalEndX :
-                            verticalEndX - Const.LASER_WIDTH * Math.sign(verticalEndLane - verticalStartLane)
-                        //直角描画
-                        const verticalPath = new Path2D()
-                        verticalPath.moveTo(verticalStartX, verticalStartY)
-                        verticalPath.lineTo(verticalStartX, verticalParallelY)
-                        verticalPath.lineTo(verticalEndXTemp, verticalParallelY)
-                        verticalPath.lineTo(verticalEndXTemp, verticalStartY)
-                        verticalPath.closePath()
-                        fillPath.addPath(verticalPath)
-                        strokePath.moveTo(verticalStartX, verticalStartY)
-                        strokePath.lineTo(verticalStartX, verticalParallelY)
-                        strokePath.lineTo(verticalEndXTemp, verticalParallelY)
-                        strokePath.moveTo(verticalEndX, verticalStartY)
-                        strokePath.lineTo(verticalStartLargerX, verticalStartY)
-                        //曲線描画
+                        const curveSmallerPoints = clipCurve([startSmallerX, startY, startCpSmallerX,startCpY,endCpSmallerX, endCpY,endSmallerX, endY], verticalParallelY)
+                        const curveLargerPoints = clipCurve([startLargerX, startY, startCpLargerX,startCpY,endCpLargerX, endCpY,endLargerX, endY], verticalParallelY)
+                        
                         const path = new Path2D()
-                        path.moveTo(startSmallerX, startY)
-                        path.bezierCurveTo(startCpSmallerX, startCpY, endCpSmallerX, endCpY, endSmallerX, endY)
-                        path.lineTo(endLargerX, endY)
-                        path.bezierCurveTo(endCpLargerX, endCpY, startCpLargerX, startCpY, startLargerX, startY)
+                        if(verticalStartLane < verticalEndLane){
+                            path.moveTo(verticalStartX, verticalStartY)
+                            path.lineTo(verticalStartX, verticalParallelY)
+                            path.lineTo(curveSmallerPoints[0], curveSmallerPoints[1])
+                            path.bezierCurveTo(curveSmallerPoints[2],curveSmallerPoints[3],curveSmallerPoints[4],curveSmallerPoints[5],curveSmallerPoints[6],curveSmallerPoints[7])
+                            path.lineTo(curveLargerPoints[6],curveLargerPoints[7])
+                            path.bezierCurveTo(endCpLargerX,endCpY,startCpLargerX,startCpY,startLargerX,startY)
+                            path.lineTo(verticalStartX, verticalStartY)
+                        }else{
+                            path.moveTo(verticalStartX, verticalStartY)
+                            path.lineTo(verticalStartX, verticalParallelY)
+                            path.lineTo(curveLargerPoints[0], curveLargerPoints[1])
+                            path.bezierCurveTo(curveLargerPoints[2],curveLargerPoints[3],curveLargerPoints[4],curveLargerPoints[5],curveLargerPoints[6],curveLargerPoints[7])
+                            path.lineTo(curveSmallerPoints[6],curveSmallerPoints[7])
+                            path.bezierCurveTo(endCpSmallerX,endCpY,startCpSmallerX,startCpY,startSmallerX,startY)
+                            path.lineTo(verticalStartX, verticalStartY)
+                        }
                         path.closePath()
                         fillPath.addPath(path)
-                        strokePath.moveTo(startSmallerX, startY)
-                        strokePath.bezierCurveTo(startCpSmallerX, startCpY, endCpSmallerX, endCpY, endSmallerX, endY)
-                        strokePath.moveTo(endLargerX, endY)
-                        strokePath.bezierCurveTo(endCpLargerX, endCpY, startCpLargerX, startCpY, startLargerX, startY)
-
+                        if(verticalStartLane < verticalEndLane){
+                            strokePath.moveTo(verticalStartX, verticalStartY)
+                            strokePath.lineTo(verticalStartX, verticalParallelY)
+                            strokePath.lineTo(curveSmallerPoints[0], curveSmallerPoints[1])
+                            strokePath.bezierCurveTo(curveSmallerPoints[2],curveSmallerPoints[3],curveSmallerPoints[4],curveSmallerPoints[5],curveSmallerPoints[6],curveSmallerPoints[7])
+                            strokePath.moveTo(curveLargerPoints[6],curveLargerPoints[7])
+                            strokePath.bezierCurveTo(endCpLargerX,endCpY,startCpLargerX,startCpY,startLargerX,startY)
+                            strokePath.lineTo(verticalStartLargerX, verticalStartY)
+                        }else{
+                            strokePath.moveTo(verticalStartX, verticalStartY)
+                            strokePath.lineTo(verticalStartX, verticalParallelY)
+                            strokePath.lineTo(curveLargerPoints[0], curveLargerPoints[1])
+                            strokePath.bezierCurveTo(curveLargerPoints[2],curveLargerPoints[3],curveLargerPoints[4],curveLargerPoints[5],curveLargerPoints[6],curveLargerPoints[7])
+                            strokePath.moveTo(curveSmallerPoints[6],curveSmallerPoints[7])
+                            strokePath.bezierCurveTo(endCpSmallerX,endCpY,startCpSmallerX,startCpY,startSmallerX,startY)
+                            strokePath.lineTo(verticalStartLargerX, verticalStartY)
+                        }
                     } else {//ただの曲線
                         const startPos = Fraction.stringToNumber(previous[1])
                         const endPos = Fraction.stringToNumber(d[1])
@@ -787,5 +797,142 @@
         }
         ctx.fillRect(fillRect1, fillRect2, fillRect3, fillRect4)
 
+    }
+
+    /**
+     * 
+     * @param {number[]} curvePoints 
+     * @param {number} laserParallelHeight 
+     * @returns {number[]}
+     */
+    function clipCurve(curvePoints, laserParallelHeight) {
+        const [startX, startY, startCpX, startCpY, endCpX, endCpY, endX, endY] = curvePoints
+        const t = solveEquationForBezierCurve(startY, startCpY, endCpY, endY, laserParallelHeight)
+        console.log(t)
+        if (t) {
+            const newCurvePoints = clipNewBezierCurve(startX, startY, startCpX, startCpY, endCpX, endCpY, endX, endY, t, 1)
+            console.log(newCurvePoints)
+            return newCurvePoints
+        }
+    }
+    function clipNewBezierCurve(x1, y1, x2, y2, x3, y3, x4, y4, t1, t2) {
+        const t1p = 1 - t1;
+        const t2p = 1 - t2;
+        const nx1 = t1p * t1p * t1p * x1 + 3 * t1 * t1p * t1p * x2 + 3 * t1 * t1 * t1p * x3 + t1 * t1 * t1 * x4;
+        const ny1 = t1p * t1p * t1p * y1 + 3 * t1 * t1p * t1p * y2 + 3 * t1 * t1 * t1p * y3 + t1 * t1 * t1 * y4;
+        const nx2 = t1p * t1p * (t2p * x1 + t2 * x2) + 2 * t1p * t1 * (t2p * x2 + t2 * x3) + t1 * t1 * (t2p * x3 + t2 * x4);
+        const ny2 = t1p * t1p * (t2p * y1 + t2 * y2) + 2 * t1p * t1 * (t2p * y2 + t2 * y3) + t1 * t1 * (t2p * y3 + t2 * y4);
+        const nx3 = t2p * t2p * (t1p * x1 + t1 * x2) + 2 * t2p * t2 * (t1p * x2 + t1 * x3) + t2 * t2 * (t1p * x3 + t1 * x4);
+        const ny3 = t2p * t2p * (t1p * y1 + t1 * y2) + 2 * t2p * t2 * (t1p * y2 + t1 * y3) + t2 * t2 * (t1p * y3 + t1 * y4);
+        const nx4 = t2p * t2p * t2p * x1 + 3 * t2 * t2p * t2p * x2 + 3 * t2 * t2 * t2p * x3 + t2 * t2 * t2 * x4;
+        const ny4 = t2p * t2p * t2p * y1 + 3 * t2 * t2p * t2p * y2 + 3 * t2 * t2 * t2p * y3 + t2 * t2 * t2 * y4;
+        return [
+            nx1,
+            ny1,
+            nx2,
+            ny2,
+            nx3,
+            ny3,
+            nx4,
+            ny4,]
+    }
+    function solveEquationForBezierCurve(p1, p2, p3, p4, p) {
+        const ap = -p1 + 3 * p2 - 3 * p3 + p4
+        const bp = 3 * p1 - 6 * p2 + 3 * p3
+        const cp = -3 * p1 + 3 * p2
+        const dp = p1 - p
+        const pt = solveCubicEquation(ap, bp, cp, dp)
+        console.log(`${pt[0]}+${pt[1]}i`)
+        console.log(`${pt[2]}+${pt[3]}i`)
+        console.log(`${pt[4]}+${pt[5]}i`)
+        const targetP = pt.filter((v, i) => i % 2 === 0).map(v => round(v, 10)).sort((a,b)=>a < b ? -1 : 1).find(v => 0 <= v && v <= 1)
+        return targetP
+    }
+    function solveCubicEquation(a, b, c, d) {
+        const p = -b * b / 3 / a / a + c / a;
+        const q = 2 * b * b * b / 27 / a / a / a - b * c / 3 / a / a + d / a;
+        const r2 = 81 * q * q + 12 * p * p * p;
+        let r_real = 0;
+        let r_img = 0;
+        let v3_real
+        let v3_img
+
+        if (r2 < 0) {
+            r_img = Math.sqrt(-r2);
+        } else {
+            r_real = Math.sqrt(r2);
+        }
+        let u3_real;
+        let u3_img
+        if (r_img) {
+            u3_real = -9 * q / 18;
+            u3_img = r_img / 18;
+            v3_real = -9 * q / 18;
+            v3_img = -r_img / 18;
+        } else {
+            u3_real = (-9 * q + r_real) / 18;
+            u3_img = 0 / 18;
+            v3_real = (-9 * q - r_real) / 18;
+            v3_img = 0 / 18;
+        }
+        let u_real;
+        let u_img
+        if (u3_img) {
+            let z = Math.sqrt(u3_real * u3_real + u3_img * u3_img);
+            let t = Math.atan2(u3_img, u3_real);
+            z = Math.pow(z, 1 / 3);
+            t = t / 3;
+            u_real = z * Math.cos(t);
+            u_img = z * Math.sin(t);
+        } else {
+            if (u3_real < 0)
+                u_real = -Math.pow(-u3_real, 1 / 3);
+            else
+                u_real = Math.pow(u3_real, 1 / 3);
+            u_img = 0;
+        }
+        let v_real;
+        let v_img
+        if (v3_img) {
+            let z = Math.sqrt(v3_real * v3_real + v3_img * v3_img);
+            let t = Math.atan2(v3_img, v3_real);
+            z = Math.pow(z, 1 / 3);
+            t = t / 3;
+            v_real = z * Math.cos(t);
+            v_img = z * Math.sin(t);
+        } else {
+            if (v3_real < 0)
+                v_real = -Math.pow(-v3_real, 1 / 3);
+            else
+                v_real = Math.pow(v3_real, 1 / 3);
+            v_img = 0;
+        }
+        const omega1_real = -0.5;
+        const omega1_img = Math.sqrt(3) / 2;
+        const omega2_real = -0.5;
+        const omega2_img = -Math.sqrt(3) / 2;
+        let y0_real, y0_img;
+        let y1_real, y1_img;
+        let y2_real, y2_img;
+        y0_real = u_real + v_real;
+        y0_img = u_img + v_img;
+        y1_real = omega1_real * u_real - omega1_img * u_img + omega2_real * v_real - omega2_img * v_img;
+        y1_img = omega1_img * u_real + omega1_real * u_img + omega2_img * v_real + omega1_real * v_img
+        y2_real = omega2_real * u_real - omega2_img * u_img + omega1_real * v_real - omega1_img * v_img;
+        y2_img = omega2_img * u_real + omega2_real * u_img + omega1_img * v_real + omega1_real * v_img
+
+        let x0_real, x0_img;
+        let x1_real, x1_img;
+        let x2_real, x2_img;
+        x0_real = y0_real - b / (3 * a);
+        x0_img = y0_img;
+        x1_real = y1_real - b / (3 * a);
+        x1_img = y1_img;
+        x2_real = y2_real - b / (3 * a);
+        x2_img = y2_img;
+        return [x0_real, x0_img, x1_real, x1_img, x2_real, x2_img]
+    }
+    function round(number, digits) {
+        return Math.round(number * Math.pow(10, digits)) / Math.pow(10, digits)
     }
 }())
