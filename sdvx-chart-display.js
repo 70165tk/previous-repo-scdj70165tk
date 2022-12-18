@@ -847,85 +847,85 @@
         const p = -b * b / 3 / a / a + c / a;
         const q = 2 * b * b * b / 27 / a / a / a - b * c / 3 / a / a + d / a;
         const r2 = 81 * q * q + 12 * p * p * p;
-        let r_real = 0;
-        let r_img = 0;
-        let v3_real
-        let v3_img
+        let r_r = 0;
+        let r_i = 0;
+        let v3_r
+        let v3_i
 
         if (r2 < 0) {
-            r_img = Math.sqrt(-r2);
+            r_i = Math.sqrt(-r2);
         } else {
-            r_real = Math.sqrt(r2);
+            r_r = Math.sqrt(r2);
         }
-        let u3_real;
-        let u3_img
-        if (r_img) {
-            u3_real = -9 * q / 18;
-            u3_img = r_img / 18;
-            v3_real = -9 * q / 18;
-            v3_img = -r_img / 18;
+        let u3_r;
+        let u3_i
+        if (r_i) {
+            u3_r = -9 * q / 18;
+            u3_i = r_i / 18;
+            v3_r = -9 * q / 18;
+            v3_i = -r_i / 18;
         } else {
-            u3_real = (-9 * q + r_real) / 18;
-            u3_img = 0 / 18;
-            v3_real = (-9 * q - r_real) / 18;
-            v3_img = 0 / 18;
+            u3_r = (-9 * q + r_r) / 18;
+            u3_i = 0 / 18;
+            v3_r = (-9 * q - r_r) / 18;
+            v3_i = 0 / 18;
         }
-        let u_real;
-        let u_img
-        if (u3_img) {
-            let z = Math.sqrt(u3_real * u3_real + u3_img * u3_img);
-            let t = Math.atan2(u3_img, u3_real);
+        let u_r;
+        let u_i
+        if (u3_i) {
+            let z = Math.sqrt(u3_r * u3_r + u3_i * u3_i);
+            let t = Math.atan2(u3_i, u3_r);
             z = Math.pow(z, 1 / 3);
             t = t / 3;
-            u_real = z * Math.cos(t);
-            u_img = z * Math.sin(t);
+            u_r = z * Math.cos(t);
+            u_i = z * Math.sin(t);
         } else {
-            if (u3_real < 0)
-                u_real = -Math.pow(-u3_real, 1 / 3);
+            if (u3_r < 0)
+                u_r = -Math.pow(-u3_r, 1 / 3);
             else
-                u_real = Math.pow(u3_real, 1 / 3);
-            u_img = 0;
+                u_r = Math.pow(u3_r, 1 / 3);
+            u_i = 0;
         }
-        let v_real;
-        let v_img
-        if (v3_img) {
-            let z = Math.sqrt(v3_real * v3_real + v3_img * v3_img);
-            let t = Math.atan2(v3_img, v3_real);
+        let v_r;
+        let v_i
+        if (v3_i) {
+            let z = Math.sqrt(v3_r * v3_r + v3_i * v3_i);
+            let t = Math.atan2(v3_i, v3_r);
             z = Math.pow(z, 1 / 3);
             t = t / 3;
-            v_real = z * Math.cos(t);
-            v_img = z * Math.sin(t);
+            v_r = z * Math.cos(t);
+            v_i = z * Math.sin(t);
         } else {
-            if (v3_real < 0)
-                v_real = -Math.pow(-v3_real, 1 / 3);
+            if (v3_r < 0)
+                v_r = -Math.pow(-v3_r, 1 / 3);
             else
-                v_real = Math.pow(v3_real, 1 / 3);
-            v_img = 0;
+                v_r = Math.pow(v3_r, 1 / 3);
+            v_i = 0;
         }
-        const omega1_real = -0.5;
-        const omega1_img = Math.sqrt(3) / 2;
-        const omega2_real = -0.5;
-        const omega2_img = -Math.sqrt(3) / 2;
-        let y0_real, y0_img;
-        let y1_real, y1_img;
-        let y2_real, y2_img;
-        y0_real = u_real + v_real;
-        y0_img = u_img + v_img;
-        y1_real = omega1_real * u_real - omega1_img * u_img + omega2_real * v_real - omega2_img * v_img;
-        y1_img = omega1_img * u_real + omega1_real * u_img + omega2_img * v_real + omega1_real * v_img
-        y2_real = omega2_real * u_real - omega2_img * u_img + omega1_real * v_real - omega1_img * v_img;
-        y2_img = omega2_img * u_real + omega2_real * u_img + omega1_img * v_real + omega1_real * v_img
+        const omega1_r = -0.5;
+        const omega1_i = Math.sqrt(3) / 2;
+        const omega2_r = -0.5;
+        const omega2_i = -Math.sqrt(3) / 2;
+        let y1_r, y1_i;
+        let y2_r, y2_i;
+        let y3_r, y3_i;
+        y1_r = u_r + v_r;
+        y1_i = u_i + v_i;
+        y2_r = omega1_r * u_r - omega1_i * u_i + omega2_r * v_r - omega2_i * v_i;
+        y2_i = omega1_i * u_r + omega1_r * u_i + omega2_i * v_r + omega1_r * v_i
+        y3_r = omega2_r * u_r - omega2_i * u_i + omega1_r * v_r - omega1_i * v_i;
+        y3_i = omega2_i * u_r + omega2_r * u_i + omega1_i * v_r + omega1_r * v_i
 
-        let x0_real, x0_img;
-        let x1_real, x1_img;
-        let x2_real, x2_img;
-        x0_real = y0_real - b / (3 * a);
-        x0_img = y0_img;
-        x1_real = y1_real - b / (3 * a);
-        x1_img = y1_img;
-        x2_real = y2_real - b / (3 * a);
-        x2_img = y2_img;
-        return [x0_real, x0_img, x1_real, x1_img, x2_real, x2_img]
+        let x1_r, x1_i;
+        let x2_r, x2_i;
+        let x3_r, x3_i;
+        x1_r = y1_r - b / (3 * a);
+        x1_i = y1_i;
+        x2_r = y2_r - b / (3 * a);
+        x2_i = y2_i;
+        x3_r = y3_r - b / (3 * a);
+        x3_i = y3_i;
+        return [x1_r, x1_i, x2_r, x2_i, x3_r, x3_i]
     }
     function round(number, digits) {
         return Math.round(number * Math.pow(10, digits)) / Math.pow(10, digits)
