@@ -846,28 +846,28 @@
     function solveCubicEquation(a, b, c, d) {
         const p = c / a - b * b / 3 / a / a;
         const q = 2 * b * b * b / 27 / a / a / a - b * c / 3 / a / a + d / a;
-        const r2 = 81 * q * q + 12 * p * p * p;
-        let r_r = 0;
-        let r_i = 0;
+        const d2 = 81 * q * q + 12 * p * p * p;
+        let d_r = 0;
+        let d_i = 0;
         let v3_r
         let v3_i
 
-        if (r2 < 0) {
-            r_i = Math.sqrt(-r2);
+        if (d2 < 0) {
+            d_i = Math.sqrt(-d2);
         } else {
-            r_r = Math.sqrt(r2);
+            d_r = Math.sqrt(d2);
         }
         let u3_r;
         let u3_i
-        if (r_i) {
+        if (d_i) {
             u3_r = -9 * q / 18;
-            u3_i = r_i / 18;
+            u3_i = d_i / 18;
             v3_r = -9 * q / 18;
-            v3_i = -r_i / 18;
+            v3_i = -d_i / 18;
         } else {
-            u3_r = (-9 * q + r_r) / 18;
+            u3_r = (-9 * q + d_r) / 18;
             u3_i = 0 / 18;
-            v3_r = (-9 * q - r_r) / 18;
+            v3_r = (-9 * q - d_r) / 18;
             v3_i = 0 / 18;
         }
         let u_r;
