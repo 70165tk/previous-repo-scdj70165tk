@@ -74,6 +74,13 @@
         static Equal(fraction1, fraction2) {//2つの分数が同じ値を指しているか判定
             return Math.round(fraction1.numerator * fraction2.denominator) == Math.round(fraction2.numerator * fraction1.denominator)
         }
+        static Add(...fracs) {
+            let res = new Fraction(0, fracs.map((f) => f.denominator).reduce((a, b) => Math.round(a * b)))
+            fracs.map((f, i, arr) => {
+                res.numerator = Math.round(res.numerator + f.numerator * res.denominator / f.denominator)
+            })
+            return res
+        }
         static isFraction(target) {//分数として解釈できる文字列か判定
             return typeof target === "string" && /[+-]?\d+\/[+-]?\d+/.test(target)
         }
@@ -105,7 +112,9 @@
                     .map((st) => st.trim())
                     .filter((st) => st)
                 )//スペースとsplit後の空文字をここで削除しているため、スペースや余分な区切り文字を入れても機能する
-            const range_data = objects.filter((d) => d[0] == "RANGE").flatMap((d) => split(d.slice(1), 2))//[[開始タイミング,終了タイミング]
+            const range_data = objects.filter((d) => d[0] == "RANGE").flatMap((d) => split(d.slice(1), 2))//[[開始タイミング,終了タイミング]]
+            const meter_data = objects.filter((d) => d[0] == "METER").flatMap((d) => split(d.slice(1), 2))//[[拍子,タイミング],[拍子,タイミング],…]
+            const meter_pos_data = meter_data.map((d)=>d.slice(1))//[[タイミング],[タイミング],…]
             const bpm_data = objects.filter((d) => d[0] == "BPM").flatMap((d) => split(d.slice(1), 2))//[[BPM,タイミング],[BPM,タイミング],…]
             const long_data = objects.filter((d) => d[0] == "LONG").flatMap((d) => split(d.slice(1), 3))//[[押すボタン,始点タイミング,終点タイミング],[押すボタン,始点タイミング,終点タイミング],…]
             const chip_data = objects.filter((d) => d[0] == "CHIP").flatMap((d) => split(d.slice(1), 2))//[[押すボタン,タイミング],[押すボタン,タイミング],…]
@@ -116,7 +125,7 @@
                 LowerMargin = Fraction.stringToNumber(range_data[0][0])
             }
             else {
-                const all_data = [...bpm_data, ...long_data, ...chip_data, ...vol_point_data]
+                const all_data = [...meter_pos_data, ...bpm_data, ...long_data, ...chip_data, ...vol_point_data]
                 last_pos =
                     Fraction.Max(...
                         all_data
@@ -141,7 +150,7 @@
             chartCanvas.setAttribute("height", `${TotalHeight}px`);
             const ctx = chartCanvas.getContext('2d');
             // 背景を描く
-            drawBackground(ctx)
+            drawBackground(ctx, meter_data)
             //オブジェクトを描く
             placeLongs(ctx, long_data)
             const vol_data = objects.filter((d) => d[0] == "VOL").map((d) => split(d.slice(1), 3))
@@ -162,7 +171,7 @@
             ctx.setTransform(1, 0, 0, -1, TotalWidth / 2, TotalHeight - LowerMargin);//Y軸反転、図中のX軸中央、Y軸下端から16分1個空けたところに原点移動
         }
     }
-    function drawBackground(ctx) {//背景を描く
+    function drawBackground(ctx, data) {//背景を描く
         ctx.setTransform(1, 0, 0, -1, (TotalWidth - Const.TOTAL_LANE_WIDTH) / 2, TotalHeight);
         ctx.fillStyle = Const.LANE_BT_COLOR
         ctx.fillRect(0, 0, Const.TOTAL_LANE_WIDTH, TotalHeight)//BTレーン
@@ -196,11 +205,41 @@
         ctx.stroke()//BTレーン縁
         ctx.strokeStyle = Const.BAR_LINE_COLOR
         ctx.setTransform(1, 0, 0, -1, (TotalWidth - Const.TOTAL_LANE_WIDTH) / 2, TotalHeight - LowerMargin);//下側のマージンを省いてY=0を設定
-        for (let barLineHeight = 0; barLineHeight < TotalHeight; barLineHeight += Const.BAR_HEIGHT) {//小節線 拍子未実装
-            ctx.beginPath()
-            ctx.moveTo(0, barLineHeight)
-            ctx.lineTo(Const.TOTAL_LANE_WIDTH, barLineHeight)
-            ctx.stroke()
+        if(data.length > 0){
+            let currentBarHeight
+            let currentPos = new Fraction()
+            for (let barLineHeight = 0; barLineHeight < TotalHeight; barLineHeight += currentBarHeight) {//小節線 拍子変更を反映
+                ctx.beginPath()
+                ctx.moveTo(0, barLineHeight)
+                ctx.lineTo(Const.TOTAL_LANE_WIDTH, barLineHeight)
+                ctx.stroke()
+                let targetIndex = data.findIndex(d=>
+                    Fraction.Equal( 
+                        Fraction.Max( new Fraction(d[1]),currentPos),
+                         new Fraction(d[1])
+                         )&&
+                         !Fraction.Equal( new Fraction(d[1]),currentPos)
+                         )
+                         -1
+                if(targetIndex < 0){
+                    targetIndex = data.length - 1
+                }
+                const targetData = data[targetIndex]
+                const targetPos = new Fraction(targetData[0])
+                //currentPos以前に配置された最後の拍子指定を読み取る
+                //拍子指定にしたがって次に足す長さを作る
+                currentBarHeight = targetPos.toNumber()*Const.BAR_HEIGHT
+                currentPos = Fraction.Add(currentPos, targetPos)
+            }
+
+        }else{
+            for (let barLineHeight = 0; barLineHeight < TotalHeight; barLineHeight += Const.BAR_HEIGHT) {//小節線 拍子4/4
+                ctx.beginPath()
+                ctx.moveTo(0, barLineHeight)
+                ctx.lineTo(Const.TOTAL_LANE_WIDTH, barLineHeight)
+                ctx.stroke()
+            }
+            
         }
     }
     function placeLongs(ctx, data) {//ロングノーツ描画
